@@ -16,6 +16,8 @@ struct sensorData {
   float previousDistance;
 } irSensor[NUM_OF_SENSORS+1];
 
+bool atLeastOneSensorIsTriggered = 0;
+
 void setup()
 {
   pinMode(LED, OUTPUT);
@@ -74,10 +76,12 @@ void readSensorsAverage(void) {
     Serial.print(": ");
     Serial.print(irSensor[i].currentDistance);
     Serial.println("cm");Serial.println("");
-    //if(abs(irSensor[i].previousDistance - irSensor[i].currentDistance) > 10) {
-      // what to do here...?
-    //  previousDistance = currentDistance;
-    //}
+    if(abs(irSensor[i].previousDistance - irSensor[i].currentDistance) > 10) {
+      atLeastOneSensorIsTriggered = true;      
+    }
+    else {
+      atLeastOneSensorIsTriggered = false;
+    }
   }
 }
 
