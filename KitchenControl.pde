@@ -6,6 +6,7 @@
 #define INTERVAL_5MIN  (300000)
 #define LED            (13)
 #define LIGHT_SWITCH   (12)
+#define TRIGGER_THRESHOLD (10)
 
 uint32_t currentMillis, previous50Hz, previous20Hz, previous2Hz, previousEvery5min;
 
@@ -14,13 +15,14 @@ struct sensorData {
   uint8_t numberOfSamples;
   float currentDistance;
   float previousDistance;
-} irSensor[NUM_OF_SENSORS+1];
+} irSensor[NUM_OF_SENSORS];
 
-bool atLeastOneSensorIsTriggered = 0;
+bool atLeastOneSensorIsTriggered = false;
 
 void setup()
 {
   pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
   Serial.begin(115200);
   Serial.println("Initialized and ready to slay BAM");
   Serial.println(" ");
@@ -67,6 +69,7 @@ void sampleSensors(void) {
 }
 
 void readSensorsAverage(void) {
+  atLeastOneSensorIsTriggered = false; // reset trig state until at least one sensor triggers it
   for(int i=0; i<NUM_OF_SENSORS; i++) {
     irSensor[i].currentDistance = 60.495 * pow(((irSensor[i].sumOfSamples/irSensor[i].numberOfSamples)*VOLTS_PER_UNIT),-1.1904);
     irSensor[i].sumOfSamples = 0;
@@ -76,11 +79,8 @@ void readSensorsAverage(void) {
     Serial.print(": ");
     Serial.print(irSensor[i].currentDistance);
     Serial.println("cm");Serial.println("");
-    if(abs(irSensor[i].previousDistance - irSensor[i].currentDistance) > 10) {
+    if(abs(irSensor[i].previousDistance - irSensor[i].currentDistance) > TRIGGER_THRESHOLD) {
       atLeastOneSensorIsTriggered = true;      
-    }
-    else {
-      atLeastOneSensorIsTriggered = false;
     }
   }
 }
